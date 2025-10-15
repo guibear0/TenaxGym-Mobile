@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text } from "react-native";
 import { Dumbbell, Calendar, BarChart } from "lucide-react-native";
 import Card from "../components/ui/Card";
-
+//
 const features = [
   {
     icon: Dumbbell,
