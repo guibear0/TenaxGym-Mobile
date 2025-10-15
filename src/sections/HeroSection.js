@@ -12,7 +12,7 @@ export default function HeroSection() {
     <View className="flex-1 justify-center items-center px-6">
       <Animated.View
         entering={FadeInDown.duration(800)}
-        className="text-center"
+        className="items-center"
       >
         <View className="flex-row items-center justify-center mb-4">
           <HeartHandshake color="#60A5FA" size={28} />
@@ -23,9 +23,7 @@ export default function HeroSection() {
 
         <Text className="text-5xl font-extrabold text-gray-100 text-center mb-6">
           Transforma tu{"\n"}
-          <Text className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
-            Rutina de Ejercicio
-          </Text>
+          <Text className="text-blue-400">Rutina de Ejercicio</Text>
         </Text>
 
         <Text className="text-xl text-gray-300 text-center mb-12 max-w-md">
@@ -37,16 +35,20 @@ export default function HeroSection() {
           <Button
             onPress={() => navigation.navigate("Register")}
             variant="solid"
-            className="px-8 py-4 text-lg"
+            className="px-6 py-4"
           >
-            Comenzar Gratis
+            <Text className="text-white text-lg font-semibold">
+              Comenzar Gratis
+            </Text>
           </Button>
           <Button
             onPress={() => navigation.navigate("Login")}
             variant="outline"
-            className="px-8 py-4 text-lg"
+            className="px-8 py-4"
           >
-            Iniciar Sesión
+            <Text className="text-gray-100 text-lg font-semibold">
+              Iniciar Sesión
+            </Text>
           </Button>
         </View>
       </Animated.View>

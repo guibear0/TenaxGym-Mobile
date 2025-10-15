@@ -3,8 +3,11 @@ import { View, Text } from "react-native";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import Feather from "react-native-vector-icons/Feather";
 import Button from "../components/ui/Button";
+import { useNavigation } from "@react-navigation/native";
 
-export default function CTASection({ isVisible, navigation }) {
+export default function CTASection({ isVisible }) {
+  const navigation = useNavigation();
+
   return (
     <View className="flex-1 justify-center items-center px-6">
       <Animated.View
