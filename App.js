@@ -1,28 +1,49 @@
 import "react-native-gesture-handler";
 import "react-native-reanimated";
-import React from "react";
+import "./src/lib/crypto-setup";
+import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Home from "./src/pages/Home";
 import Login from "./src/pages/Login";
 import Register from "./src/pages/Register";
 import TrainerDashboard from "./src/pages/TrainerDashboard";
 import ClientDashboard from "./src/pages/ClientDashboard";
+import Profile from "./src/pages/Profile";
 
 import "./global.css";
 
 const Stack = createStackNavigator();
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(null);
+
+  useEffect(() => {
+    checkUserSession();
+  }, []);
+
+  const checkUserSession = async () => {
+    try {
+      const userProfile = await AsyncStorage.getItem("userProfile");
+      setIsLoggedIn(!!userProfile);
+    } catch (err) {
+      console.error("Error checking session:", err);
+      setIsLoggedIn(false);
+    }
+  };
+
+  if (isLoggedIn === null) {
+    return null; // Splash screen mientras carga
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-          // 🔥 Esto elimina la pantalla blanca entre transiciones
           cardStyle: { backgroundColor: "transparent" },
-          // 🔥 Animación más rápida y suave
           cardStyleInterpolator: ({ current: { progress } }) => ({
             cardStyle: {
               opacity: progress,
@@ -32,7 +53,7 @@ export default function App() {
             open: {
               animation: "timing",
               config: {
-                duration: 200, // Transición más rápida
+                duration: 200,
               },
             },
             close: {
@@ -43,12 +64,14 @@ export default function App() {
             },
           },
         }}
+        initialRouteName={isLoggedIn ? "ClientDashboard" : "Home"}
       >
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="TrainerDashboard" component={TrainerDashboard} />
         <Stack.Screen name="ClientDashboard" component={ClientDashboard} />
+        <Stack.Screen name="Profile" component={Profile} />
       </Stack.Navigator>
     </NavigationContainer>
   );

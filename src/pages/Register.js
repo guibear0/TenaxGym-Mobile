@@ -7,14 +7,13 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { supabase } from "../lib/supabase";
-import bcrypt from "bcryptjs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
+import bcrypt from "bcryptjs";
 
 export default function Register({ navigation }) {
   const [form, setForm] = useState({
@@ -22,14 +21,16 @@ export default function Register({ navigation }) {
     email: "",
     password: "",
     sexo: "Hombre",
-    is_trainer: false,
-    trainerCode: "",
   });
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!form.name || !form.email || !form.password) {
+    const trimmedName = form.name.trim();
+    const trimmedEmail = form.email.trim();
+    const trimmedPassword = form.password.trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedPassword) {
       setErrorMsg("Por favor completa todos los campos");
       return;
     }
@@ -38,45 +39,66 @@ export default function Register({ navigation }) {
     setLoading(true);
 
     try {
-      if (form.is_trainer) {
-        const code = (form.trainerCode || "").trim().toUpperCase();
-        if (code !== "TENAXTRAINER") {
-          setErrorMsg("Código de entrenador incorrecto");
-          setLoading(false);
-          return;
-        }
-      }
-
-      const hashedPassword = await bcrypt.hash(form.password, 10);
+      // Generar salt y hashear
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(trimmedPassword, salt);
 
       const { data, error } = await supabase
         .from("profiles")
         .insert({
-          name: form.name,
-          email: form.email,
+          name: trimmedName,
+          email: trimmedEmail,
           password: hashedPassword,
-          is_trainer: form.is_trainer,
+          is_trainer: false,
           sexo: form.sexo,
         })
         .select();
 
-      if (error) throw error;
+      if (error) {
+        setErrorMsg(error.message || "Error al registrar la cuenta");
+        setLoading(false);
+        return;
+      }
+
+      const userId = data[0].id;
+
+      // Verificar si el cliente ya existe
+      const { data: existingClient } = await supabase
+        .from("clientes")
+        .select("id_cliente")
+        .eq("id_cliente", userId)
+        .single();
+
+      // Solo insertar si no existe
+      let clientError = null;
+      if (!existingClient) {
+        const result = await supabase.from("clientes").insert({
+          id_cliente: userId,
+          trainer_id: null,
+        });
+        clientError = result.error;
+      }
+
+      if (clientError) {
+        setErrorMsg(clientError.message || "Error al crear perfil de cliente");
+        setLoading(false);
+        return;
+      }
 
       await AsyncStorage.setItem(
         "userProfile",
         JSON.stringify({
-          id: data[0].id,
-          name: form.name,
-          email: form.email,
-          is_trainer: form.is_trainer,
+          id: userId,
+          name: trimmedName,
+          email: trimmedEmail,
+          is_trainer: false,
           sexo: form.sexo,
         })
       );
 
-      navigation.replace(
-        form.is_trainer ? "TrainerDashboard" : "ClientDashboard"
-      );
+      navigation.replace("ClientDashboard");
     } catch (err) {
+      console.error("Error en registro:", err);
       setErrorMsg(err.message || "Error al registrar");
       setLoading(false);
     }
@@ -190,56 +212,6 @@ export default function Register({ navigation }) {
                     className="bg-gray-900 border border-gray-600 text-white rounded-lg p-3"
                   />
                 </View>
-
-                <TouchableOpacity
-                  onPress={() =>
-                    setForm({
-                      ...form,
-                      is_trainer: !form.is_trainer,
-                      trainerCode: !form.is_trainer ? form.trainerCode : "",
-                    })
-                  }
-                  className="flex-row items-center mb-4"
-                >
-                  <View
-                    className={`w-5 h-5 border-2 rounded mr-2 items-center justify-center ${
-                      form.is_trainer
-                        ? "bg-blue-600 border-blue-600"
-                        : "border-gray-600"
-                    }`}
-                  >
-                    {form.is_trainer && (
-                      <Text className="text-white text-xs">✓</Text>
-                    )}
-                  </View>
-                  <Text className="text-sm font-semibold text-gray-100">
-                    Soy entrenador
-                  </Text>
-                </TouchableOpacity>
-
-                {form.is_trainer && (
-                  <Animated.View
-                    entering={FadeInUp.duration(400)}
-                    className="mb-4"
-                  >
-                    <Text className="mb-2 text-sm font-semibold text-gray-100">
-                      Código de entrenador
-                    </Text>
-                    <TextInput
-                      value={form.trainerCode}
-                      onChangeText={(text) =>
-                        setForm({ ...form, trainerCode: text })
-                      }
-                      placeholder="Introduce el código"
-                      placeholderTextColor="#9CA3AF"
-                      autoCapitalize="characters"
-                      className="bg-gray-900 border border-gray-600 text-white rounded-lg p-3"
-                    />
-                    <Text className="text-sm text-gray-300 mt-1">
-                      Introduce el código secreto para entrenadores
-                    </Text>
-                  </Animated.View>
-                )}
 
                 <TouchableOpacity
                   onPress={handleRegister}
