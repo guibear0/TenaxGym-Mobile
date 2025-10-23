@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInUp } from "react-native-reanimated";
-import { Dumbbell, User, Ruler, Zap } from "lucide-react-native";
+import { User, Activity, Ruler, BookOpenCheck } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const sections = [
@@ -11,12 +11,12 @@ const sections = [
     name: "Perfil",
     icon: User,
     color: "#3b82f6",
-    bgColor: "bg-blue-900/40",
+    bgColor: "bg-gray-900/40",
   },
   {
     id: "exercises",
     name: "Ejercicios",
-    icon: Dumbbell,
+    icon: Activity,
     color: "#ef4444",
     bgColor: "bg-red-900/40",
   },
@@ -30,7 +30,7 @@ const sections = [
   {
     id: "tests",
     name: "Tests",
-    icon: Zap,
+    icon: BookOpenCheck,
     color: "#f59e0b",
     bgColor: "bg-amber-900/40",
   },
@@ -78,7 +78,7 @@ export default function ClientDashboard({ navigation }) {
         navigation.navigate("Profile");
         break;
       case "exercises":
-        // navigation.navigate("Exercises");
+        navigation.navigate("Exercises");
         break;
       case "measures":
         // navigation.navigate("Measures");

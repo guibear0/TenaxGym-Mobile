@@ -12,7 +12,7 @@ import Register from "./src/pages/Register";
 import TrainerDashboard from "./src/pages/TrainerDashboard";
 import ClientDashboard from "./src/pages/ClientDashboard";
 import Profile from "./src/pages/Profile";
-
+import Exercises from "./src/pages/ExercisesScreen";
 import "./global.css";
 
 const Stack = createStackNavigator();
@@ -72,6 +72,7 @@ export default function App() {
         <Stack.Screen name="TrainerDashboard" component={TrainerDashboard} />
         <Stack.Screen name="ClientDashboard" component={ClientDashboard} />
         <Stack.Screen name="Profile" component={Profile} />
+        <Stack.Screen name="Exercises" component={Exercises} />
       </Stack.Navigator>
     </NavigationContainer>
   );
