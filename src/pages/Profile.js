@@ -298,7 +298,7 @@ export default function Profile({ navigation }) {
         >
           {userProfile ? (
             <Animated.View entering={FadeInUp.duration(400).delay(100)}>
-              {/* CARD AZUL ya estaba bien */}
+              {/* CARD AZUL */}
               <View
                 className="bg-blue-900/40 rounded-2xl border border-gray-600/50 p-6 mb-6"
                 style={{ marginTop: 40 }}
@@ -440,7 +440,16 @@ export default function Profile({ navigation }) {
               </TouchableOpacity>
             </Animated.View>
           ) : (
-            <Text className="text-gray-300">Cargando perfil...</Text>
+            // Cargando perfil centrado
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text className="text-gray-300 text-lg">Cargando perfil...</Text>
+            </View>
           )}
         </KeyboardAwareScrollView>
       </KeyboardAvoidingView>
