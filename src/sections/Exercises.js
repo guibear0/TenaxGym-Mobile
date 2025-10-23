@@ -1,14 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-  View,
-  Text,
-  Image,
-  Dimensions,
-  PanResponder,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, Image, Dimensions, ActivityIndicator } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { supabase } from "../lib/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ImageOff } from "lucide-react-native";
 
 const { width, height } = Dimensions.get("window");
 const BLOCK_ORDER = ["Calentamiento", "Fuerza", "Estabilidad", "Cardio"];
@@ -19,19 +14,19 @@ export default function Exercises({ day }) {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showHint, setShowHint] = useState(false);
 
-  // 🧠 Refs para que PanResponder siempre vea el valor actualizado
-  const selectedBlockIndexRef = useRef(0);
-  const currentExerciseIndexRef = useRef(0);
+  const touchStartX = useRef(0);
+  const hintTimer = useRef(null);
 
   useEffect(() => {
-    selectedBlockIndexRef.current = selectedBlockIndex;
-  }, [selectedBlockIndex]);
-  useEffect(() => {
-    currentExerciseIndexRef.current = currentExerciseIndex;
-  }, [currentExerciseIndex]);
+    setShowHint(false);
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    hintTimer.current = setTimeout(() => setShowHint(true), 3000);
 
-  // Cargar usuario
+    return () => hintTimer.current && clearTimeout(hintTimer.current);
+  }, [currentExerciseIndex, selectedBlockIndex]);
+
   useEffect(() => {
     const fetchUser = async () => {
       const data = await AsyncStorage.getItem("userProfile");
@@ -61,7 +56,6 @@ export default function Exercises({ day }) {
     return -1;
   };
 
-  // Cargar ejercicios
   useEffect(() => {
     if (!userId) return;
     const fetchData = async () => {
@@ -102,11 +96,10 @@ export default function Exercises({ day }) {
         const firstIdx = BLOCK_ORDER.findIndex(
           (b) => (grouped[b]?.length || 0) > 0
         );
+
         setExercisesByBlock({ grouped, blockComments });
         setSelectedBlockIndex(firstIdx >= 0 ? firstIdx : 0);
         setCurrentExerciseIndex(0);
-        selectedBlockIndexRef.current = firstIdx >= 0 ? firstIdx : 0;
-        currentExerciseIndexRef.current = 0;
       } catch (err) {
         console.log("Error cargando ejercicios:", err.message);
       } finally {
@@ -116,50 +109,61 @@ export default function Exercises({ day }) {
     fetchData();
   }, [day, userId]);
 
-  // Swipe handler usando refs
-  const handleSwipeExercise = (direction) => {
+  const goNext = () => {
     if (!exercisesByBlock) return;
     const grouped = exercisesByBlock.grouped;
-    let blockIdx = selectedBlockIndexRef.current;
-    let exIdx = currentExerciseIndexRef.current;
-
-    const currentBlock = BLOCK_ORDER[blockIdx];
+    const currentBlock = BLOCK_ORDER[selectedBlockIndex];
     const exercises = grouped[currentBlock] || [];
 
-    if (direction === "next") {
-      if (exIdx < exercises.length - 1) {
-        setCurrentExerciseIndex(exIdx + 1);
-      } else {
-        const nextBlock = findNextBlockWithExercises(blockIdx, 1, grouped);
-        if (nextBlock !== -1) {
-          setSelectedBlockIndex(nextBlock);
-          setCurrentExerciseIndex(0);
-        }
-      }
+    if (currentExerciseIndex < exercises.length - 1) {
+      setCurrentExerciseIndex(currentExerciseIndex + 1);
     } else {
-      if (exIdx > 0) {
-        setCurrentExerciseIndex(exIdx - 1);
-      } else {
-        const prevBlock = findNextBlockWithExercises(blockIdx, -1, grouped);
-        if (prevBlock !== -1) {
-          const prevExercises = grouped[BLOCK_ORDER[prevBlock]] || [];
-          setSelectedBlockIndex(prevBlock);
-          setCurrentExerciseIndex(prevExercises.length - 1);
-        }
+      const nextBlock = findNextBlockWithExercises(
+        selectedBlockIndex,
+        1,
+        grouped
+      );
+      if (nextBlock !== -1) {
+        setSelectedBlockIndex(nextBlock);
+        setCurrentExerciseIndex(0);
       }
     }
   };
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 15,
-      onPanResponderRelease: (_, g) => {
-        if (g.dx < -50) handleSwipeExercise("next");
-        else if (g.dx > 50) handleSwipeExercise("prev");
-      },
-    })
-  ).current;
+  const goPrev = () => {
+    if (!exercisesByBlock) return;
+    const grouped = exercisesByBlock.grouped;
+    const currentBlock = BLOCK_ORDER[selectedBlockIndex];
+
+    if (currentExerciseIndex > 0) {
+      setCurrentExerciseIndex(currentExerciseIndex - 1);
+    } else {
+      const prevBlock = findNextBlockWithExercises(
+        selectedBlockIndex,
+        -1,
+        grouped
+      );
+      if (prevBlock !== -1) {
+        const prevExercises = grouped[BLOCK_ORDER[prevBlock]] || [];
+        setSelectedBlockIndex(prevBlock);
+        setCurrentExerciseIndex(Math.max(0, prevExercises.length - 1));
+      }
+    }
+  };
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.nativeEvent.pageX;
+    setShowHint(false);
+  };
+
+  const handleTouchEnd = (e) => {
+    const touchEndX = e.nativeEvent.pageX;
+    const distance = touchStartX.current - touchEndX;
+    const threshold = 50;
+
+    if (distance > threshold) goNext();
+    else if (distance < -threshold) goPrev();
+  };
 
   if (loading)
     return (
@@ -178,7 +182,8 @@ export default function Exercises({ day }) {
   if (!exercise)
     return (
       <View
-        {...panResponder.panHandlers}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
         <Text style={{ color: "#fff", fontSize: 18 }}>
@@ -187,9 +192,13 @@ export default function Exercises({ day }) {
       </View>
     );
 
+  const imageHeight = height * 0.45;
+  const imageWidth = width * 0.9;
+
   return (
     <View
-      {...panResponder.panHandlers}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       style={{
         flex: 1,
         alignItems: "center",
@@ -206,21 +215,39 @@ export default function Exercises({ day }) {
           color: "#ccc",
           marginVertical: 12,
           textAlign: "center",
+          paddingHorizontal: 20,
         }}
       >
         {comment}
       </Text>
 
-      {exercise.catalogo_ejercicios?.imagen && (
+      {exercise.catalogo_ejercicios?.imagen ? (
         <Image
           source={{ uri: exercise.catalogo_ejercicios.imagen }}
           style={{
-            width: width * 0.9,
-            height: height * 0.45,
+            width: imageWidth,
+            height: imageHeight,
             borderRadius: 16,
+            marginVertical: 10,
           }}
           resizeMode="cover"
         />
+      ) : (
+        <Animated.View
+          entering={FadeIn.duration(600)}
+          exiting={FadeOut.duration(400)}
+          style={{
+            width: imageWidth,
+            height: imageHeight,
+            borderRadius: 16,
+            backgroundColor: "#1f2937",
+            justifyContent: "center",
+            alignItems: "center",
+            marginVertical: 10,
+          }}
+        >
+          <ImageOff size={64} color="#9CA3AF" />
+        </Animated.View>
       )}
 
       <Text
@@ -228,8 +255,9 @@ export default function Exercises({ day }) {
           fontSize: 22,
           fontWeight: "600",
           color: "#fff",
-          marginTop: 20,
+          marginTop: -3,
           textAlign: "center",
+          paddingHorizontal: 20,
         }}
       >
         {exercise.catalogo_ejercicios?.nombre}
@@ -237,6 +265,40 @@ export default function Exercises({ day }) {
       <Text style={{ marginTop: 8, color: "#aaa" }}>
         Ejercicio {currentExerciseIndex + 1} de {exercises.length}
       </Text>
+
+      <View
+        style={{
+          flexDirection: "row",
+          marginTop: 20,
+          gap: 8,
+          alignItems: "center",
+        }}
+      >
+        {exercises.map((_, idx) => (
+          <View
+            key={idx}
+            style={{
+              width: idx === currentExerciseIndex ? 24 : 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor:
+                idx === currentExerciseIndex ? "#60A5FA" : "#4B5563",
+            }}
+          />
+        ))}
+      </View>
+
+      {showHint && (
+        <Animated.View
+          entering={FadeIn.duration(800)}
+          exiting={FadeOut.duration(400)}
+          style={{ marginTop: 15 }}
+        >
+          <Text style={{ color: "#9CA3AF", fontSize: 14, textAlign: "center" }}>
+            Desliza para navegar
+          </Text>
+        </Animated.View>
+      )}
     </View>
   );
 }

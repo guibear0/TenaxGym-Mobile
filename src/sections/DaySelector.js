@@ -1,51 +1,49 @@
-import React, { useRef } from "react";
-import { View, Text, TouchableOpacity, PanResponder } from "react-native";
+import React, { useRef, useState, useEffect } from "react";
+import { View, Text } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 export default function DaySelector({ day, onDayChange }) {
   const TOTAL_DAYS = 5;
 
-  // Swipe izquierda/derecha para cambiar el día
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 20,
-      onPanResponderRelease: (_, gesture) => {
-        if (gesture.dx < -50 && day < TOTAL_DAYS) onDayChange(day + 1);
-        else if (gesture.dx > 50 && day > 1) onDayChange(day - 1);
-      },
-    })
-  ).current;
+  const touchStartX = useRef(0);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.nativeEvent.pageX;
+  };
+
+  const handleTouchEnd = (e) => {
+    const touchEndX = e.nativeEvent.pageX;
+    const distance = touchStartX.current - touchEndX;
+    const threshold = 50;
+
+    if (distance > threshold && day < TOTAL_DAYS) {
+      onDayChange(day + 1);
+    } else if (distance < -threshold && day > 1) {
+      onDayChange(day - 1);
+    }
+  };
 
   return (
     <View
-      {...panResponder.panHandlers}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       style={{
         marginTop: 60,
         alignItems: "center",
         marginBottom: 20,
-        flexDirection: "row",
-        justifyContent: "space-between",
         paddingHorizontal: 40,
       }}
     >
-      <TouchableOpacity
-        onPress={() => day > 1 && onDayChange(day - 1)}
-        disabled={day === 1}
-        style={{ opacity: day === 1 ? 0.3 : 1 }}
+      <Text
+        style={{
+          color: "#fff",
+          fontWeight: "bold",
+          fontSize: 24,
+          marginBottom: 15,
+        }}
       >
-        <Text style={{ color: "#fff", fontSize: 26 }}>◀</Text>
-      </TouchableOpacity>
-
-      <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 20 }}>
         Día {day}
       </Text>
-
-      <TouchableOpacity
-        onPress={() => day < TOTAL_DAYS && onDayChange(day + 1)}
-        disabled={day === TOTAL_DAYS}
-        style={{ opacity: day === TOTAL_DAYS ? 0.3 : 1 }}
-      >
-        <Text style={{ color: "#fff", fontSize: 26 }}>▶</Text>
-      </TouchableOpacity>
     </View>
   );
 }
