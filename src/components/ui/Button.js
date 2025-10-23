@@ -1,13 +1,33 @@
 import React from "react";
 import { TouchableOpacity, Text } from "react-native";
-import Animated, { ZoomIn, ZoomOut } from "react-native-reanimated";
-//hola
+import Animated, {
+  useAnimatedStyle,
+  withSpring,
+  useSharedValue,
+} from "react-native-reanimated";
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
 export default function Button({
   children,
   onPress,
   variant = "solid",
   className,
 }) {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1);
+  };
+
   const baseStyle =
     "px-6 py-3 rounded-lg font-semibold shadow-lg transition-all duration-300 flex items-center justify-center";
 
@@ -18,22 +38,21 @@ export default function Button({
   };
 
   return (
-    <Animated.View entering={ZoomIn} exiting={ZoomOut}>
-      <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={0.8}
-        className={`${baseStyle} ${variants[variant]} ${className}`}
-      >
-        {typeof children === "string" ? (
-          <Text
-            className={variant === "solid" ? "text-white" : "text-gray-100"}
-          >
-            {children}
-          </Text>
-        ) : (
-          children
-        )}
-      </TouchableOpacity>
-    </Animated.View>
+    <AnimatedTouchable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={0.8}
+      style={animatedStyle}
+      className={`${baseStyle} ${variants[variant]} ${className}`}
+    >
+      {typeof children === "string" ? (
+        <Text className={variant === "solid" ? "text-white" : "text-gray-100"}>
+          {children}
+        </Text>
+      ) : (
+        children
+      )}
+    </AnimatedTouchable>
   );
 }

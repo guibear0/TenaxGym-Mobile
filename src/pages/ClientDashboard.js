@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { User, Activity, Ruler, BookOpenCheck } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import PaginationDots from "../components/ui/PaginationDots";
 
 const sections = [
   {
@@ -81,7 +82,7 @@ export default function ClientDashboard({ navigation }) {
         navigation.navigate("Exercises");
         break;
       case "measures":
-        // navigation.navigate("Measures");
+        navigation.navigate("Measures");
         break;
       case "tests":
         // navigation.navigate("Tests");
@@ -151,18 +152,11 @@ export default function ClientDashboard({ navigation }) {
         </Animated.View>
 
         {/* INDICADORES */}
-        <View className="flex-row justify-center gap-2">
-          {sections.map((_, index) => (
-            <View
-              key={index}
-              className={`rounded-full ${
-                index === activeIndex
-                  ? "bg-blue-400 w-8 h-3"
-                  : "bg-gray-600 w-3 h-3"
-              }`}
-            />
-          ))}
-        </View>
+        <PaginationDots
+          currentIndex={activeIndex}
+          totalDots={sections.length}
+          containerStyle={{ marginBottom: 10 }}
+        />
 
         {/* TEXTO DE SWIPE */}
         <Text className="text-center text-gray-400 text-sm mt-3">

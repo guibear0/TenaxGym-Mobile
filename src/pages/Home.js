@@ -9,6 +9,7 @@ import Animated, {
 import HeroSection from "../sections/HeroSection";
 import FeaturesSection from "../sections/FeaturesSection";
 import CTASection from "../sections/CTASection";
+import PaginationDots from "../components/ui/PaginationDots";
 
 const { width, height } = Dimensions.get("window");
 
@@ -66,9 +67,11 @@ export default function Home() {
 
       {/* 🔵 Paginación con animación */}
       <View style={styles.pagination}>
-        {dotStyles.map((style, index) => (
-          <Animated.View key={index} style={[styles.dotBase, style]} />
-        ))}
+        <PaginationDots
+          currentIndex={currentIndex}
+          totalDots={3}
+          containerStyle={{ position: "absolute", bottom: 50, width: "100%" }}
+        />
       </View>
     </LinearGradient>
   );

@@ -4,6 +4,7 @@ import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { supabase } from "../lib/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ImageOff } from "lucide-react-native";
+import PaginationDots from "../components/ui/PaginationDots";
 
 const { width, height } = Dimensions.get("window");
 const BLOCK_ORDER = ["Calentamiento", "Fuerza", "Estabilidad", "Cardio"];
@@ -266,27 +267,11 @@ export default function Exercises({ day }) {
         Ejercicio {currentExerciseIndex + 1} de {exercises.length}
       </Text>
 
-      <View
-        style={{
-          flexDirection: "row",
-          marginTop: 20,
-          gap: 8,
-          alignItems: "center",
-        }}
-      >
-        {exercises.map((_, idx) => (
-          <View
-            key={idx}
-            style={{
-              width: idx === currentExerciseIndex ? 24 : 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor:
-                idx === currentExerciseIndex ? "#60A5FA" : "#4B5563",
-            }}
-          />
-        ))}
-      </View>
+      <PaginationDots
+        currentIndex={currentExerciseIndex}
+        totalDots={exercises.length}
+        containerStyle={{ marginTop: 20 }}
+      />
 
       {showHint && (
         <Animated.View
