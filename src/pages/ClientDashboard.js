@@ -5,6 +5,7 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 import { User, Activity, Ruler, BookOpenCheck } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PaginationDots from "../components/ui/PaginationDots";
+import SwipeHint from "../components/ui/SwipeHint";
 
 const sections = [
   {
@@ -158,10 +159,11 @@ export default function ClientDashboard({ navigation }) {
           containerStyle={{ marginBottom: 10 }}
         />
 
-        {/* TEXTO DE SWIPE */}
-        <Text className="text-center text-gray-400 text-sm mt-3">
-          Desliza para navegar
-        </Text>
+        {/* HINT DE SWIPE */}
+        <SwipeHint
+          dependencies={[activeIndex]}
+          containerStyle={{ marginTop: 3 }}
+        />
       </View>
     </LinearGradient>
   );

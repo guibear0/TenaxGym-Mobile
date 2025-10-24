@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ImageOff } from "lucide-react-native";
 import PaginationDots from "../components/ui/PaginationDots";
+import SwipeHint from "../components/ui/SwipeHint";
 
 const { width, height } = Dimensions.get("window");
 const BLOCK_ORDER = ["Calentamiento", "Fuerza", "Estabilidad", "Cardio"];
@@ -15,18 +16,8 @@ export default function Exercises({ day }) {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showHint, setShowHint] = useState(false);
 
   const touchStartX = useRef(0);
-  const hintTimer = useRef(null);
-
-  useEffect(() => {
-    setShowHint(false);
-    if (hintTimer.current) clearTimeout(hintTimer.current);
-    hintTimer.current = setTimeout(() => setShowHint(true), 3000);
-
-    return () => hintTimer.current && clearTimeout(hintTimer.current);
-  }, [currentExerciseIndex, selectedBlockIndex]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -154,7 +145,6 @@ export default function Exercises({ day }) {
 
   const handleTouchStart = (e) => {
     touchStartX.current = e.nativeEvent.pageX;
-    setShowHint(false);
   };
 
   const handleTouchEnd = (e) => {
@@ -273,17 +263,10 @@ export default function Exercises({ day }) {
         containerStyle={{ marginTop: 20 }}
       />
 
-      {showHint && (
-        <Animated.View
-          entering={FadeIn.duration(800)}
-          exiting={FadeOut.duration(400)}
-          style={{ marginTop: 15 }}
-        >
-          <Text style={{ color: "#9CA3AF", fontSize: 14, textAlign: "center" }}>
-            Desliza para navegar
-          </Text>
-        </Animated.View>
-      )}
+      <SwipeHint
+        dependencies={[currentExerciseIndex, selectedBlockIndex]}
+        containerStyle={{ marginTop: 15 }}
+      />
     </View>
   );
 }
