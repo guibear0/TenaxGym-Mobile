@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-//holasssssssss
+//holassssss
 import Home from "./src/pages/Home";
 import Login from "./src/pages/Login";
 import Register from "./src/pages/Register";
