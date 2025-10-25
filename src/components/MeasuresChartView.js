@@ -369,32 +369,6 @@ export default function MeasuresChartView({ data }) {
           );
         })}
       </View>
-
-      {/* Dots */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          marginTop: 24,
-          gap: 8,
-        }}
-      >
-        {charts.map((_, idx) => (
-          <TouchableOpacity
-            key={idx}
-            onPress={() => setCurrentChartIndex(idx)}
-            style={{
-              width: idx === currentChartIndex ? 24 : 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor:
-                idx === currentChartIndex
-                  ? "#60a5fa"
-                  : "rgba(167, 167, 167, 0.3)",
-            }}
-          />
-        ))}
-      </View>
     </ScrollView>
   );
 }

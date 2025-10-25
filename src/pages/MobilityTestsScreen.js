@@ -12,17 +12,47 @@ import {
   Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import {
-  ArrowLeft,
-  Plus,
-  Trash2,
-  TrendingUp,
-  X,
-  Check,
-} from "lucide-react-native";
+import { Plus, Trash2, TrendingUp, X, Check } from "lucide-react-native";
+import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
 import TestsChartView from "../components/TestsChartView";
+import CollapsibleGroup from "../components/CollapsibleGroup";
+
+const EJERCICIOS_MOVILIDAD = {
+  Hombros: [
+    "Rotación Interna Izquierda",
+    "Rotación Interna Derecha",
+    "Rotación Externa Izquierda",
+    "Rotación Externa Derecha",
+  ],
+  Overhead: [
+    "Overhead Flexión Izquierda",
+    "Overhead Flexión Derecha",
+    "Overhead Squat",
+  ],
+  Tórax: ["Rotación Derecha", "Rotación Izquierda"],
+  Caderas: [
+    "Rotación Interna Izquierda",
+    "Rotación Interna Derecha",
+    "Flexión Izquierda",
+    "Flexión Derecha",
+    "Abducción Izquierda",
+    "Abducción Derecha",
+  ],
+  "Cadera Posterior": ["Flexibilidad Izquierda", "Flexibilidad Derecha"],
+  Tobillos: ["Flexión Izquierda", "Flexión Derecha"],
+};
+
+// Lista plana para el selector
+const ALL_EJERCICIOS = Object.entries(EJERCICIOS_MOVILIDAD).flatMap(
+  ([grupo, ejercicios]) =>
+    ejercicios.map((ej) => ({
+      grupo,
+      ejercicio: ej,
+      label: `${grupo} - ${ej}`,
+    }))
+);
 
 export default function MobilityTestsScreen({ navigation }) {
   const [userId, setUserId] = useState(null);
@@ -30,7 +60,10 @@ export default function MobilityTestsScreen({ navigation }) {
   const [data, setData] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedView, setSelectedView] = useState("list");
-  const [formValues, setFormValues] = useState({ ejercicio: "", marca: "" });
+  const [formValues, setFormValues] = useState({
+    ejercicio: ALL_EJERCICIOS[0].ejercicio,
+    marca: "",
+  });
 
   useEffect(() => {
     loadUser();
@@ -94,7 +127,7 @@ export default function MobilityTestsScreen({ navigation }) {
       if (error) throw error;
 
       Alert.alert("Éxito", "Test guardado");
-      setFormValues({ ejercicio: "", marca: "" });
+      setFormValues({ ejercicio: ALL_EJERCICIOS[0].ejercicio, marca: "" });
       fetchData();
       setModalVisible(false);
     } catch (err) {
@@ -136,6 +169,87 @@ export default function MobilityTestsScreen({ navigation }) {
     });
   };
 
+  // Determinar el grupo de un ejercicio
+  const getGrupo = (ejercicio) => {
+    for (const [grupo, ejercicios] of Object.entries(EJERCICIOS_MOVILIDAD)) {
+      if (ejercicios.includes(ejercicio)) {
+        return grupo;
+      }
+    }
+    return "Otros";
+  };
+
+  // Agrupar datos por grupo de movilidad
+  const groupedData = {};
+  data.forEach((record) => {
+    const grupo = getGrupo(record.ejercicio);
+    if (!groupedData[grupo]) {
+      groupedData[grupo] = {};
+    }
+    if (!groupedData[grupo][record.ejercicio]) {
+      groupedData[grupo][record.ejercicio] = [];
+    }
+    groupedData[grupo][record.ejercicio].push(record);
+  });
+
+  const renderTestItem = (record, onDelete) => {
+    return (
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: "#60a5fa", fontSize: 12, marginBottom: 4 }}>
+            {formatDate(record.fecha)}
+          </Text>
+          <Text style={{ color: "#22c55e", fontSize: 20, fontWeight: "bold" }}>
+            {record.marca} cm
+          </Text>
+        </View>
+        <TouchableOpacity onPress={onDelete}>
+          <Trash2 size={20} color="#ef4444" />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const renderSubGroup = (ejercicio, tests) => {
+    return (
+      <View style={{ marginBottom: 12 }}>
+        <View
+          style={{
+            backgroundColor: "rgba(55, 65, 81, 0.4)",
+            padding: 10,
+            borderRadius: 8,
+            marginBottom: 8,
+          }}
+        >
+          <Text style={{ color: "#e5e7eb", fontWeight: "600", fontSize: 14 }}>
+            {ejercicio}
+          </Text>
+        </View>
+        {tests.map((test) => (
+          <View
+            key={test.id}
+            style={{
+              backgroundColor: "rgba(31, 41, 55, 0.6)",
+              padding: 12,
+              borderRadius: 12,
+              marginBottom: 8,
+              borderWidth: 1,
+              borderColor: "rgba(107, 114, 128, 0.3)",
+            }}
+          >
+            {renderTestItem(test, () => handleDelete(test.id))}
+          </View>
+        ))}
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <LinearGradient
@@ -162,12 +276,6 @@ export default function MobilityTestsScreen({ navigation }) {
             marginBottom: 20,
           }}
         >
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={{ marginRight: 16 }}
-          >
-            <ArrowLeft size={28} color="#fff" />
-          </TouchableOpacity>
           <Text style={{ fontSize: 28, fontWeight: "bold", color: "#fff" }}>
             Tests de Movilidad
           </Text>
@@ -255,53 +363,24 @@ export default function MobilityTestsScreen({ navigation }) {
                 </Text>
               </View>
             ) : (
-              data.map((record) => (
-                <View
-                  key={record.id}
-                  style={{
-                    backgroundColor: "rgba(31, 41, 55, 0.6)",
-                    padding: 16,
-                    borderRadius: 16,
-                    marginBottom: 12,
-                    borderWidth: 1,
-                    borderColor: "rgba(107, 114, 128, 0.3)",
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      marginBottom: 8,
-                    }}
-                  >
-                    <Text style={{ color: "#60a5fa", fontWeight: "600" }}>
-                      {formatDate(record.fecha)}
-                    </Text>
-                    <TouchableOpacity onPress={() => handleDelete(record.id)}>
-                      <Trash2 size={20} color="#ef4444" />
-                    </TouchableOpacity>
-                  </View>
-                  <Text
-                    style={{
-                      color: "#fff",
-                      fontSize: 18,
-                      fontWeight: "bold",
-                      marginBottom: 4,
-                    }}
-                  >
-                    {record.ejercicio}
-                  </Text>
-                  <Text
-                    style={{
-                      color: "#22c55e",
-                      fontSize: 24,
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {record.marca} cm
-                  </Text>
-                </View>
-              ))
+              Object.entries(groupedData).map(([grupo, ejercicios]) => {
+                const allTests = Object.values(ejercicios).flat();
+                return (
+                  <CollapsibleGroup
+                    key={grupo}
+                    title={grupo}
+                    items={allTests}
+                    renderItem={() => (
+                      <View>
+                        {Object.entries(ejercicios).map(([ejercicio, tests]) =>
+                          renderSubGroup(ejercicio, tests)
+                        )}
+                      </View>
+                    )}
+                    defaultOpen={false}
+                  />
+                );
+              })
             )}
           </ScrollView>
         ) : (
@@ -332,6 +411,7 @@ export default function MobilityTestsScreen({ navigation }) {
                   borderTopLeftRadius: 24,
                   borderTopRightRadius: 24,
                   padding: 20,
+                  maxHeight: "80%",
                 }}
               >
                 <View
@@ -351,66 +431,76 @@ export default function MobilityTestsScreen({ navigation }) {
                   </TouchableOpacity>
                 </View>
 
-                <View style={{ marginBottom: 16 }}>
-                  <Text
-                    style={{
-                      color: "#d1d5db",
-                      fontSize: 14,
-                      fontWeight: "600",
-                      marginBottom: 8,
-                    }}
-                  >
-                    Ejercicio
-                  </Text>
-                  <TextInput
-                    value={formValues.ejercicio}
-                    onChangeText={(text) =>
-                      setFormValues({ ...formValues, ejercicio: text })
-                    }
-                    placeholder="Ej: Flexión de Cadera"
-                    placeholderTextColor="#6b7280"
-                    style={{
-                      backgroundColor: "#374151",
-                      color: "#fff",
-                      padding: 14,
-                      borderRadius: 12,
-                      fontSize: 16,
-                      borderWidth: 1,
-                      borderColor: "rgba(107, 114, 128, 0.3)",
-                    }}
-                  />
-                </View>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  <View style={{ marginBottom: 16 }}>
+                    <Text
+                      style={{
+                        color: "#d1d5db",
+                        fontSize: 14,
+                        fontWeight: "600",
+                        marginBottom: 8,
+                      }}
+                    >
+                      Ejercicio
+                    </Text>
+                    <View
+                      style={{
+                        backgroundColor: "#374151",
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: "rgba(107, 114, 128, 0.3)",
+                      }}
+                    >
+                      <Picker
+                        selectedValue={formValues.ejercicio}
+                        onValueChange={(value) =>
+                          setFormValues({ ...formValues, ejercicio: value })
+                        }
+                        style={{ color: "#fff" }}
+                        dropdownIconColor="#fff"
+                      >
+                        {ALL_EJERCICIOS.map((item) => (
+                          <Picker.Item
+                            key={item.ejercicio}
+                            label={item.label}
+                            value={item.ejercicio}
+                          />
+                        ))}
+                      </Picker>
+                    </View>
+                  </View>
 
-                <View style={{ marginBottom: 20 }}>
-                  <Text
-                    style={{
-                      color: "#d1d5db",
-                      fontSize: 14,
-                      fontWeight: "600",
-                      marginBottom: 8,
-                    }}
-                  >
-                    Marca (cm)
-                  </Text>
-                  <TextInput
-                    value={formValues.marca}
-                    onChangeText={(text) =>
-                      setFormValues({ ...formValues, marca: text })
-                    }
-                    placeholder="Ej: 45"
-                    placeholderTextColor="#6b7280"
-                    keyboardType="numeric"
-                    style={{
-                      backgroundColor: "#374151",
-                      color: "#fff",
-                      padding: 14,
-                      borderRadius: 12,
-                      fontSize: 16,
-                      borderWidth: 1,
-                      borderColor: "rgba(107, 114, 128, 0.3)",
-                    }}
-                  />
-                </View>
+                  <View style={{ marginBottom: 20 }}>
+                    <Text
+                      style={{
+                        color: "#d1d5db",
+                        fontSize: 14,
+                        fontWeight: "600",
+                        marginBottom: 8,
+                      }}
+                    >
+                      Marca (cm)
+                    </Text>
+                    <TextInput
+                      value={formValues.marca}
+                      onChangeText={(text) =>
+                        setFormValues({ ...formValues, marca: text })
+                      }
+                      placeholder="Ej: 45"
+                      placeholderTextColor="#6b7280"
+                      keyboardType="numeric"
+                      style={{
+                        backgroundColor: "#374151",
+                        color: "#fff",
+                        padding: 14,
+                        borderRadius: 12,
+                        fontSize: 16,
+                        borderWidth: 1,
+                        borderColor: "rgba(107, 114, 128, 0.3)",
+                      }}
+                    />
+                  </View>
+                </ScrollView>
 
                 <View style={{ flexDirection: "row", gap: 12 }}>
                   <TouchableOpacity

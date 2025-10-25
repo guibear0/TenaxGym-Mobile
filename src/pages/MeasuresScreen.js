@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
 import MeasuresModal from "../components/MeasuresModal";
 import MeasuresChartView from "../components/MeasuresChartView";
+import CollapsibleGroup from "../components/CollapsibleGroup";
 
 export default function MeasuresScreen({ navigation }) {
   const [userId, setUserId] = useState(null);
@@ -20,6 +21,19 @@ export default function MeasuresScreen({ navigation }) {
   const [data, setData] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedView, setSelectedView] = useState("list");
+
+  // Definir grupos de medidas
+  const measureGroups = {
+    "Medidas Individuales": ["pecho", "cintura", "cadera"],
+    Bíceps: [
+      "biceps_izq",
+      "biceps_der",
+      "biceps_contraido_izq",
+      "biceps_contraido_der",
+    ],
+    Muslos: ["muslo_izq", "muslo_der"],
+    Gemelos: ["gemelo_izq", "gemelo_der"],
+  };
 
   useEffect(() => {
     loadUser();
@@ -37,7 +51,7 @@ export default function MeasuresScreen({ navigation }) {
         setUserId(user.id);
       }
     } catch (err) {
-      console.error("Error cargando usuario:", err);
+      console.error("Error:", err);
     } finally {
       setLoading(false);
     }
@@ -83,32 +97,45 @@ export default function MeasuresScreen({ navigation }) {
     }
   };
 
-  const handleDelete = (id) => {
-    Alert.alert(
-      "Confirmar",
-      "¿Eliminar este registro de medidas?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const { error } = await supabase
-                .from("perimetros")
-                .delete()
-                .eq("id", id);
+  const handleDeleteMeasure = async (recordId, fieldKey, label) => {
+    Alert.alert("Confirmar", `¿Eliminar "${label}"?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Eliminar",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const { error } = await supabase
+              .from("perimetros")
+              .update({ [fieldKey]: null })
+              .eq("id", recordId);
 
-              if (error) throw error;
-              fetchData();
-              Alert.alert("Éxito", "Registro eliminado");
-            } catch (err) {
-              Alert.alert("Error", "No se pudo eliminar");
-            }
-          },
+            if (error) throw error;
+            fetchData();
+            Alert.alert("Éxito", "Medida eliminada");
+          } catch (err) {
+            Alert.alert("Error", "No se pudo eliminar");
+          }
         },
-      ]
-    );
+      },
+    ]);
+  };
+
+  const getFieldLabel = (field) => {
+    const labels = {
+      pecho: "Pecho",
+      cintura: "Cintura",
+      cadera: "Cadera",
+      biceps_izq: "Bíceps Izquierdo",
+      biceps_der: "Bíceps Derecho",
+      biceps_contraido_izq: "Bíceps Contraído Izq",
+      biceps_contraido_der: "Bíceps Contraído Der",
+      muslo_izq: "Muslo Izquierdo",
+      muslo_der: "Muslo Derecho",
+      gemelo_izq: "Gemelo Izquierdo",
+      gemelo_der: "Gemelo Derecho",
+    };
+    return labels[field] || field;
   };
 
   const formatDate = (dateString) => {
@@ -119,6 +146,86 @@ export default function MeasuresScreen({ navigation }) {
       month: "short",
       year: "numeric",
     });
+  };
+
+  // Agrupar registros por grupo de medidas
+  const getGroupedData = (groupName, fields) => {
+    const groupedItems = [];
+
+    data.forEach((record) => {
+      const recordItems = [];
+
+      fields.forEach((field) => {
+        if (record[field] !== null && record[field] !== undefined) {
+          recordItems.push({
+            id: `${record.id}-${field}`,
+            recordId: record.id,
+            field,
+            label: getFieldLabel(field),
+            value: record[field],
+            fecha: record.fecha,
+          });
+        }
+      });
+
+      if (recordItems.length > 0) {
+        groupedItems.push({
+          id: record.id,
+          fecha: record.fecha,
+          items: recordItems,
+        });
+      }
+    });
+
+    return groupedItems;
+  };
+
+  const renderGroupItem = (group, onDelete) => {
+    return (
+      <>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginBottom: 8,
+          }}
+        >
+          <Text style={{ color: "#60a5fa", fontWeight: "600" }}>
+            {formatDate(group.fecha)}
+          </Text>
+        </View>
+
+        {group.items.map((item) => (
+          <View
+            key={item.id}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingVertical: 6,
+              borderBottomWidth: 1,
+              borderBottomColor: "rgba(107, 114, 128, 0.12)",
+            }}
+          >
+            <Text style={{ color: "#d1d5db" }}>{item.label}</Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "600" }}>
+                {item.value} cm
+              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  handleDeleteMeasure(item.recordId, item.field, item.label)
+                }
+              >
+                <Trash2 size={18} color="#ef4444" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
+      </>
+    );
   };
 
   if (loading) {
@@ -133,7 +240,10 @@ export default function MeasuresScreen({ navigation }) {
   }
 
   return (
-    <LinearGradient colors={["#1a1a1a", "#1e40af", "#4f46e5"]} style={{ flex: 1 }}>
+    <LinearGradient
+      colors={["#1a1a1a", "#1e40af", "#4f46e5"]}
+      style={{ flex: 1 }}
+    >
       <View style={{ flex: 1, paddingTop: 60 }}>
         {/* Header */}
         <View
@@ -237,77 +347,19 @@ export default function MeasuresScreen({ navigation }) {
                 </Text>
               </View>
             ) : (
-              data.map((record) => (
-                <View
-                  key={record.id}
-                  style={{
-                    backgroundColor: "rgba(31, 41, 55, 0.6)",
-                    padding: 16,
-                    borderRadius: 16,
-                    marginBottom: 12,
-                    borderWidth: 1,
-                    borderColor: "rgba(107, 114, 128, 0.3)",
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      marginBottom: 12,
-                    }}
-                  >
-                    <Text style={{ color: "#60a5fa", fontWeight: "600" }}>
-                      {formatDate(record.fecha)}
-                    </Text>
-                    <TouchableOpacity onPress={() => handleDelete(record.id)}>
-                      <Trash2 size={20} color="#ef4444" />
-                    </TouchableOpacity>
-                  </View>
-
-                  {record.pecho && (
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 }}>
-                      <Text style={{ color: "#d1d5db" }}>Pecho</Text>
-                      <Text style={{ color: "#fff", fontWeight: "600" }}>{record.pecho} cm</Text>
-                    </View>
-                  )}
-                  {record.cintura && (
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 }}>
-                      <Text style={{ color: "#d1d5db" }}>Cintura</Text>
-                      <Text style={{ color: "#fff", fontWeight: "600" }}>{record.cintura} cm</Text>
-                    </View>
-                  )}
-                  {record.cadera && (
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 }}>
-                      <Text style={{ color: "#d1d5db" }}>Cadera</Text>
-                      <Text style={{ color: "#fff", fontWeight: "600" }}>{record.cadera} cm</Text>
-                    </View>
-                  )}
-                  {(record.biceps_izq || record.biceps_der) && (
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 }}>
-                      <Text style={{ color: "#d1d5db" }}>Bíceps</Text>
-                      <Text style={{ color: "#fff", fontWeight: "600" }}>
-                        I: {record.biceps_izq || "-"} / D: {record.biceps_der || "-"}
-                      </Text>
-                    </View>
-                  )}
-                  {(record.muslo_izq || record.muslo_der) && (
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 }}>
-                      <Text style={{ color: "#d1d5db" }}>Muslo</Text>
-                      <Text style={{ color: "#fff", fontWeight: "600" }}>
-                        I: {record.muslo_izq || "-"} / D: {record.muslo_der || "-"}
-                      </Text>
-                    </View>
-                  )}
-                  {(record.gemelo_izq || record.gemelo_der) && (
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 }}>
-                      <Text style={{ color: "#d1d5db" }}>Gemelo</Text>
-                      <Text style={{ color: "#fff", fontWeight: "600" }}>
-                        I: {record.gemelo_izq || "-"} / D: {record.gemelo_der || "-"}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              ))
+              Object.entries(measureGroups).map(([groupName, fields]) => {
+                const groupData = getGroupedData(groupName, fields);
+                return (
+                  <CollapsibleGroup
+                    key={groupName}
+                    title={groupName}
+                    items={groupData}
+                    renderItem={renderGroupItem}
+                    defaultOpen={false}
+                    emptyMessage="No hay medidas en este grupo"
+                  />
+                );
+              })
             )}
           </ScrollView>
         ) : (

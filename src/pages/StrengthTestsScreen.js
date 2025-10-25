@@ -20,9 +20,23 @@ import {
   X,
   Check,
 } from "lucide-react-native";
+import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
 import TestsChartView from "../components/TestsChartView";
+import CollapsibleGroup from "../components/CollapsibleGroup";
+
+const EJERCICIOS_FUERZA = [
+  "Sentadilla",
+  "Press Banca",
+  "Peso Muerto",
+  "Press Militar",
+  "Dominadas",
+  "Remo",
+  "Hip Thrust",
+  "Curl Bíceps",
+  "Press Francés",
+];
 
 export default function StrengthTestsScreen({ navigation }) {
   const [userId, setUserId] = useState(null);
@@ -30,7 +44,10 @@ export default function StrengthTestsScreen({ navigation }) {
   const [data, setData] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedView, setSelectedView] = useState("list");
-  const [formValues, setFormValues] = useState({ ejercicio: "", marca: "" });
+  const [formValues, setFormValues] = useState({
+    ejercicio: EJERCICIOS_FUERZA[0],
+    marca: "",
+  });
 
   useEffect(() => {
     loadUser();
@@ -94,7 +111,7 @@ export default function StrengthTestsScreen({ navigation }) {
       if (error) throw error;
 
       Alert.alert("Éxito", "Test guardado");
-      setFormValues({ ejercicio: "", marca: "" });
+      setFormValues({ ejercicio: EJERCICIOS_FUERZA[0], marca: "" });
       fetchData();
       setModalVisible(false);
     } catch (err) {
@@ -134,6 +151,39 @@ export default function StrengthTestsScreen({ navigation }) {
       month: "short",
       year: "numeric",
     });
+  };
+
+  // Agrupar datos por ejercicio
+  const groupedData = {};
+  data.forEach((record) => {
+    if (!groupedData[record.ejercicio]) {
+      groupedData[record.ejercicio] = [];
+    }
+    groupedData[record.ejercicio].push(record);
+  });
+
+  const renderTestItem = (record, onDelete) => {
+    return (
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: "#60a5fa", fontSize: 12, marginBottom: 4 }}>
+            {formatDate(record.fecha)}
+          </Text>
+          <Text style={{ color: "#22c55e", fontSize: 20, fontWeight: "bold" }}>
+            {record.marca} kg
+          </Text>
+        </View>
+        <TouchableOpacity onPress={onDelete}>
+          <Trash2 size={20} color="#ef4444" />
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   if (loading) {
@@ -255,52 +305,15 @@ export default function StrengthTestsScreen({ navigation }) {
                 </Text>
               </View>
             ) : (
-              data.map((record) => (
-                <View
-                  key={record.id}
-                  style={{
-                    backgroundColor: "rgba(31, 41, 55, 0.6)",
-                    padding: 16,
-                    borderRadius: 16,
-                    marginBottom: 12,
-                    borderWidth: 1,
-                    borderColor: "rgba(107, 114, 128, 0.3)",
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      marginBottom: 8,
-                    }}
-                  >
-                    <Text style={{ color: "#60a5fa", fontWeight: "600" }}>
-                      {formatDate(record.fecha)}
-                    </Text>
-                    <TouchableOpacity onPress={() => handleDelete(record.id)}>
-                      <Trash2 size={20} color="#ef4444" />
-                    </TouchableOpacity>
-                  </View>
-                  <Text
-                    style={{
-                      color: "#fff",
-                      fontSize: 18,
-                      fontWeight: "bold",
-                      marginBottom: 4,
-                    }}
-                  >
-                    {record.ejercicio}
-                  </Text>
-                  <Text
-                    style={{
-                      color: "#22c55e",
-                      fontSize: 24,
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {record.marca} kg
-                  </Text>
-                </View>
+              Object.entries(groupedData).map(([ejercicio, tests]) => (
+                <CollapsibleGroup
+                  key={ejercicio}
+                  title={ejercicio}
+                  items={tests}
+                  onDeleteItem={handleDelete}
+                  renderItem={renderTestItem}
+                  defaultOpen={false}
+                />
               ))
             )}
           </ScrollView>
@@ -362,23 +375,31 @@ export default function StrengthTestsScreen({ navigation }) {
                   >
                     Ejercicio
                   </Text>
-                  <TextInput
-                    value={formValues.ejercicio}
-                    onChangeText={(text) =>
-                      setFormValues({ ...formValues, ejercicio: text })
-                    }
-                    placeholder="Ej: Press Banca"
-                    placeholderTextColor="#6b7280"
+                  <View
                     style={{
                       backgroundColor: "#374151",
-                      color: "#fff",
-                      padding: 14,
                       borderRadius: 12,
-                      fontSize: 16,
                       borderWidth: 1,
                       borderColor: "rgba(107, 114, 128, 0.3)",
                     }}
-                  />
+                  >
+                    <Picker
+                      selectedValue={formValues.ejercicio}
+                      onValueChange={(value) =>
+                        setFormValues({ ...formValues, ejercicio: value })
+                      }
+                      style={{ color: "#fff" }}
+                      dropdownIconColor="#fff"
+                    >
+                      {EJERCICIOS_FUERZA.map((ejercicio) => (
+                        <Picker.Item
+                          key={ejercicio}
+                          label={ejercicio}
+                          value={ejercicio}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
                 </View>
 
                 <View style={{ marginBottom: 20 }}>
