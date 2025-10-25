@@ -2,7 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInUp } from "react-native-reanimated";
-import { User, Activity, Ruler, BookOpenCheck } from "lucide-react-native";
+import {
+  User,
+  Activity,
+  Ruler,
+  BookOpenCheck,
+  Dumbbell,
+} from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PaginationDots from "../components/ui/PaginationDots";
 import SwipeHint from "../components/ui/SwipeHint";
@@ -33,8 +39,8 @@ const sections = [
     id: "tests",
     name: "Tests",
     icon: BookOpenCheck,
-    color: "#f59e0b",
-    bgColor: "bg-amber-900/40",
+    color: "#8b5cf6",
+    bgColor: "bg-purple-900/40",
   },
 ];
 
@@ -86,10 +92,25 @@ export default function ClientDashboard({ navigation }) {
         navigation.navigate("Measures");
         break;
       case "tests":
-        // navigation.navigate("Tests");
+        navigation.navigate("Tests");
         break;
       default:
         break;
+    }
+  };
+
+  const getDescription = (id) => {
+    switch (id) {
+      case "profile":
+        return "Aquí puedes ver y actualizar tu información personal";
+      case "exercises":
+        return "Carga, organiza y sigue tus ejercicios diarios";
+      case "measures":
+        return "Registra tus medidas corporales y visualiza tu progreso";
+      case "tests":
+        return "Realiza tests de fuerza y movilidad";
+      default:
+        return "";
     }
   };
 
@@ -139,14 +160,7 @@ export default function ClientDashboard({ navigation }) {
                 {currentSection.name}
               </Text>
               <Text className="text-gray-300 text-center mt-6 text-base leading-6">
-                {currentSection.id === "profile" &&
-                  "Aquí puedes ver y actualizar tu información personal"}
-                {currentSection.id === "exercises" &&
-                  "Carga, organiza y sigue tus ejercicios diarios"}
-                {currentSection.id === "measures" &&
-                  "Registra tus medidas y visualiza tu progreso"}
-                {currentSection.id === "tests" &&
-                  "Realiza tests de fuerza y movilidad"}
+                {getDescription(currentSection.id)}
               </Text>
             </View>
           </TouchableOpacity>

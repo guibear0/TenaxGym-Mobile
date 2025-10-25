@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-//holassssss
+
 import Home from "./src/pages/Home";
 import Login from "./src/pages/Login";
 import Register from "./src/pages/Register";
@@ -14,6 +14,10 @@ import ClientDashboard from "./src/pages/ClientDashboard";
 import Profile from "./src/pages/Profile";
 import Exercises from "./src/pages/ExercisesScreen";
 import Measures from "./src/pages/MeasuresScreen";
+import Tests from "./src/pages/TestsScreen";
+import StrengthTests from "./src/pages/StrengthTestsScreen";
+import MobilityTests from "./src/pages/MobilityTestsScreen";
+
 import "./global.css";
 
 const Stack = createStackNavigator();
@@ -75,6 +79,9 @@ export default function App() {
         <Stack.Screen name="Profile" component={Profile} />
         <Stack.Screen name="Exercises" component={Exercises} />
         <Stack.Screen name="Measures" component={Measures} />
+        <Stack.Screen name="Tests" component={Tests} />
+        <Stack.Screen name="StrengthTests" component={StrengthTests} />
+        <Stack.Screen name="MobilityTests" component={MobilityTests} />
       </Stack.Navigator>
     </NavigationContainer>
   );

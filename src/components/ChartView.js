@@ -7,7 +7,12 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import {
+  ChevronLeft,
+  ChevronRight,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 const { width } = Dimensions.get("window");
@@ -113,12 +118,12 @@ export default function ChartView({ data, config }) {
             datasets: [
               {
                 data: leftValues,
-                color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`, // Rojo para izquierda
+                color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
                 strokeWidth: 2,
               },
               {
                 data: rightValues,
-                color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`, // Verde para derecha
+                color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
                 strokeWidth: 2,
               },
             ],
@@ -218,7 +223,7 @@ export default function ChartView({ data, config }) {
           paddingHorizontal: 12,
           borderWidth: 1,
           borderColor: "rgba(107, 114, 128, 0.3)",
-          alignItems: "center", // centramos el chart
+          alignItems: "center",
         }}
       >
         <LineChart
@@ -230,7 +235,7 @@ export default function ChartView({ data, config }) {
             backgroundGradientFrom: "#1f2937",
             backgroundGradientTo: "#1f2937",
             decimalPlaces: 1,
-            color: (opacity = 1) => `rgba(96, 165, 250, ${opacity})`, // azul brillante
+            color: (opacity = 1) => `rgba(96, 165, 250, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(209, 213, 219, ${opacity})`,
             style: {
               borderRadius: 16,
@@ -291,13 +296,13 @@ export default function ChartView({ data, config }) {
         )}
       </Animated.View>
 
-      {/* Stats Summary */}
+      {/* Stats Summary - MEJORADO */}
       <View
         style={{
           marginTop: 20,
-          backgroundColor: "rgba(31, 41, 55, 0.6)",
+          backgroundColor: "rgba(31, 41, 55, 0.8)",
           borderRadius: 16,
-          padding: 16,
+          padding: 20,
           borderWidth: 1,
           borderColor: "rgba(107, 114, 128, 0.3)",
         }}
@@ -305,12 +310,13 @@ export default function ChartView({ data, config }) {
         <Text
           style={{
             color: "#fff",
-            fontSize: 16,
-            fontWeight: "600",
-            marginBottom: 12,
+            fontSize: 18,
+            fontWeight: "700",
+            marginBottom: 16,
+            textAlign: "center",
           }}
         >
-          Estadísticas
+          📊 Estadísticas
         </Text>
 
         {currentChart.data.datasets.map((dataset, idx) => {
@@ -321,88 +327,213 @@ export default function ChartView({ data, config }) {
             values.reduce((a, b) => a + b, 0) / values.length
           ).toFixed(1);
           const latest = values[values.length - 1];
-          const change = values.length > 1 ? latest - values[0] : 0;
+          const first = values[0];
+          const change = latest - first;
+          const changePercent =
+            first !== 0 ? ((change / first) * 100).toFixed(1) : 0;
 
           return (
-            <View key={idx} style={{ marginBottom: idx === 0 ? 12 : 0 }}>
+            <View
+              key={idx}
+              style={{
+                marginBottom:
+                  idx === 0 && currentChart.type === "paired" ? 16 : 0,
+              }}
+            >
               {currentChart.type === "paired" && (
-                <Text
+                <View
                   style={{
-                    color: idx === 0 ? "#ef4444" : "#22c55e",
-                    fontSize: 14,
-                    fontWeight: "600",
-                    marginBottom: 8,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 12,
+                    paddingBottom: 8,
+                    borderBottomWidth: 1,
+                    borderBottomColor: "rgba(107, 114, 128, 0.3)",
                   }}
                 >
-                  {currentChart.data.legend[idx]}
-                </Text>
-              )}
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 12,
-                }}
-              >
-                <View style={{ flex: 1, minWidth: "45%" }}>
-                  <Text style={{ color: "#9ca3af", fontSize: 12 }}>Mínimo</Text>
+                  <View
+                    style={{
+                      width: 12,
+                      height: 12,
+                      backgroundColor: idx === 0 ? "#ef4444" : "#22c55e",
+                      borderRadius: 6,
+                      marginRight: 8,
+                    }}
+                  />
                   <Text
                     style={{
                       color: "#fff",
                       fontSize: 16,
                       fontWeight: "600",
-                      marginTop: 2,
+                    }}
+                  >
+                    {currentChart.data.legend[idx]}
+                  </Text>
+                </View>
+              )}
+
+              {/* Tarjetas de estadísticas */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: 10,
+                  marginBottom: 12,
+                }}
+              >
+                {/* Mínimo */}
+                <View
+                  style={{
+                    flex: 1,
+                    minWidth: "48%",
+                    backgroundColor: "rgba(59, 130, 246, 0.1)",
+                    borderRadius: 12,
+                    padding: 14,
+                    borderLeftWidth: 3,
+                    borderLeftColor: "#3b82f6",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#9ca3af",
+                      fontSize: 11,
+                      fontWeight: "600",
+                      marginBottom: 4,
+                    }}
+                  >
+                    MÍNIMO
+                  </Text>
+                  <Text
+                    style={{
+                      color: "#fff",
+                      fontSize: 24,
+                      fontWeight: "700",
                     }}
                   >
                     {min.toFixed(1)}
                   </Text>
                 </View>
 
-                <View style={{ flex: 1, minWidth: "45%" }}>
-                  <Text style={{ color: "#9ca3af", fontSize: 12 }}>Máximo</Text>
+                {/* Máximo */}
+                <View
+                  style={{
+                    flex: 1,
+                    minWidth: "48%",
+                    backgroundColor: "rgba(16, 185, 129, 0.1)",
+                    borderRadius: 12,
+                    padding: 14,
+                    borderLeftWidth: 3,
+                    borderLeftColor: "#10b981",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#9ca3af",
+                      fontSize: 11,
+                      fontWeight: "600",
+                      marginBottom: 4,
+                    }}
+                  >
+                    MÁXIMO
+                  </Text>
                   <Text
                     style={{
                       color: "#fff",
-                      fontSize: 16,
-                      fontWeight: "600",
-                      marginTop: 2,
+                      fontSize: 24,
+                      fontWeight: "700",
                     }}
                   >
                     {max.toFixed(1)}
                   </Text>
                 </View>
 
-                <View style={{ flex: 1, minWidth: "45%" }}>
-                  <Text style={{ color: "#9ca3af", fontSize: 12 }}>
-                    Promedio
+                {/* Promedio */}
+                <View
+                  style={{
+                    flex: 1,
+                    minWidth: "48%",
+                    backgroundColor: "rgba(245, 158, 11, 0.1)",
+                    borderRadius: 12,
+                    padding: 14,
+                    borderLeftWidth: 3,
+                    borderLeftColor: "#f59e0b",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#9ca3af",
+                      fontSize: 11,
+                      fontWeight: "600",
+                      marginBottom: 4,
+                    }}
+                  >
+                    PROMEDIO
                   </Text>
                   <Text
                     style={{
                       color: "#fff",
-                      fontSize: 16,
-                      fontWeight: "600",
-                      marginTop: 2,
+                      fontSize: 24,
+                      fontWeight: "700",
                     }}
                   >
                     {avg}
                   </Text>
                 </View>
 
-                <View style={{ flex: 1, minWidth: "45%" }}>
-                  <Text style={{ color: "#9ca3af", fontSize: 12 }}>
-                    Cambio Total
-                  </Text>
+                {/* Cambio Total */}
+                <View
+                  style={{
+                    flex: 1,
+                    minWidth: "48%",
+                    backgroundColor:
+                      change >= 0
+                        ? "rgba(34, 197, 94, 0.1)"
+                        : "rgba(239, 68, 68, 0.1)",
+                    borderRadius: 12,
+                    padding: 14,
+                    borderLeftWidth: 3,
+                    borderLeftColor: change >= 0 ? "#22c55e" : "#ef4444",
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 4,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#9ca3af",
+                        fontSize: 11,
+                        fontWeight: "600",
+                        marginRight: 4,
+                      }}
+                    >
+                      CAMBIO TOTAL
+                    </Text>
+                    {change >= 0 ? (
+                      <TrendingUp size={14} color="#22c55e" />
+                    ) : (
+                      <TrendingDown size={14} color="#ef4444" />
+                    )}
+                  </View>
                   <Text
                     style={{
                       color: change >= 0 ? "#22c55e" : "#ef4444",
-                      fontSize: 16,
-                      fontWeight: "600",
-                      marginTop: 2,
+                      fontSize: 24,
+                      fontWeight: "700",
                     }}
                   >
                     {change >= 0 ? "+" : ""}
                     {change.toFixed(1)}
+                  </Text>
+                  <Text
+                    style={{ color: "#9ca3af", fontSize: 11, marginTop: 2 }}
+                  >
+                    ({change >= 0 ? "+" : ""}
+                    {changePercent}%)
                   </Text>
                 </View>
               </View>
