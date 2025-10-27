@@ -19,6 +19,7 @@ import {
   Check,
   X,
   Edit2,
+  ScissorsSquareDashedBottom,
 } from "lucide-react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -428,16 +429,18 @@ export default function Profile({ navigation }) {
                 )}
               </View>
 
-              {/* Logout */}
-              <TouchableOpacity
-                onPress={handleLogout}
-                className="bg-red-900/40 rounded-lg p-4 flex-row items-center justify-center gap-2 mt-4"
-              >
-                <LogOut size={20} color="#ef4444" />
-                <Text className="text-red-400 font-semibold text-base">
-                  Cerrar sesión
-                </Text>
-              </TouchableOpacity>
+              {/* Logout solo si no estamos editando */}
+              {!editingField && (
+                <TouchableOpacity
+                  onPress={handleLogout}
+                  className="bg-red-900/40 rounded-lg p-4 flex-row items-center justify-center gap-2 mt-4"
+                >
+                  <LogOut size={20} color="#ef4444" />
+                  <Text className="text-red-400 font-semibold text-base">
+                    Cerrar sesión
+                  </Text>
+                </TouchableOpacity>
+              )}
             </Animated.View>
           ) : (
             // Cargando perfil centrado

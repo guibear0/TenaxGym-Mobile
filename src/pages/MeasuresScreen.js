@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { ArrowLeft, Plus, Trash2, TrendingUp } from "lucide-react-native";
+import { Plus, Trash2, TrendingUp } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
 import MeasuresModal from "../components/MeasuresModal";
@@ -256,12 +256,6 @@ export default function MeasuresScreen({ navigation }) {
             marginBottom: 20,
           }}
         >
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={{ marginRight: 16 }}
-          >
-            <ArrowLeft size={28} color="#fff" />
-          </TouchableOpacity>
           <Text style={{ fontSize: 28, fontWeight: "bold", color: "#fff" }}>
             Perímetros Corporales
           </Text>
