@@ -32,22 +32,25 @@ export default function TestsChartView({ data, tipo }) {
     );
   }
 
-  // Agrupar por ejercicio
+  // Agrupar por "categoria::ejercicio"
   const exerciseGroups = {};
   data.forEach((record) => {
-    if (!exerciseGroups[record.ejercicio]) {
-      exerciseGroups[record.ejercicio] = [];
-    }
-    exerciseGroups[record.ejercicio].push(record);
+    const key = `${record.categoria || "Fuerza"}::${record.ejercicio}`;
+    if (!exerciseGroups[key]) exerciseGroups[key] = [];
+    exerciseGroups[key].push(record);
   });
 
-  // Crear gráficas por ejercicio
-  const charts = Object.keys(exerciseGroups).map((ejercicio) => {
-    const records = exerciseGroups[ejercicio].sort(
+  // Crear gráficas por categoría + ejercicio
+  const charts = Object.keys(exerciseGroups).map((key) => {
+    const records = exerciseGroups[key].sort(
       (a, b) => new Date(a.fecha) - new Date(b.fecha)
     );
 
+    // Separar categoría y nombre limpio
+    const [categoria, ejercicio] = key.split("::");
+
     return {
+      categoria,
       ejercicio,
       data: {
         labels: records.map((r) =>
@@ -104,9 +107,24 @@ export default function TestsChartView({ data, tipo }) {
         </TouchableOpacity>
 
         <View style={{ flex: 1, alignItems: "center" }}>
-          <Text style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>
+          {/* Categoría arriba */}
+          <Text style={{ color: "#9ca3af", fontSize: 14, fontWeight: "500" }}>
+            {currentChart.categoria}
+          </Text>
+
+          {/* Ejercicio debajo, centrado */}
+          <Text
+            style={{
+              color: "#fff",
+              fontSize: 18,
+              fontWeight: "bold",
+              marginTop: 2,
+            }}
+          >
             {currentChart.ejercicio}
           </Text>
+
+          {/* Contador abajo */}
           <Text style={{ color: "#9ca3af", fontSize: 12, marginTop: 4 }}>
             {currentExerciseIndex + 1} de {charts.length}
           </Text>

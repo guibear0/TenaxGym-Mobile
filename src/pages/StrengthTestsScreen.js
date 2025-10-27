@@ -120,7 +120,8 @@ export default function StrengthTestsScreen({ navigation }) {
     }
   };
 
-  const handleDelete = (id) => {
+  // ✅ FIX: Recibe el objeto test completo de CollapsibleGroup
+  const handleDelete = (test) => {
     Alert.alert("Confirmar", "¿Eliminar este test?", [
       { text: "Cancelar", style: "cancel" },
       {
@@ -131,12 +132,15 @@ export default function StrengthTestsScreen({ navigation }) {
             const { error } = await supabase
               .from("test_resultados")
               .delete()
-              .eq("id", id);
+              .eq("id", test.id); // ✅ Usar test.id
+
             if (error) throw error;
+
             fetchData();
             Alert.alert("Éxito", "Test eliminado");
           } catch (err) {
-            Alert.alert("Error", "No se pudo eliminar");
+            console.error("Error eliminando:", err);
+            Alert.alert("Error", err.message || "No se pudo eliminar");
           }
         },
       },

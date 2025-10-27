@@ -24,7 +24,9 @@ export default function MeasuresScreen({ navigation }) {
 
   // Definir grupos de medidas
   const measureGroups = {
-    "Medidas Individuales": ["pecho", "cintura", "cadera"],
+    Pecho: ["pecho"],
+    Cintura: ["cintura"],
+    Cadera: ["cadera"],
     Bíceps: [
       "biceps_izq",
       "biceps_der",

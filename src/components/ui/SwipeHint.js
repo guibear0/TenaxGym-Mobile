@@ -11,7 +11,7 @@ import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
  * @param {Array} dependencies - Array de dependencias para reiniciar el timer
  */
 export default function SwipeHint({
-  delay = 3000,
+  delay = 5000,
   text = "Desliza para navegar",
   containerStyle = {},
   textStyle = {},

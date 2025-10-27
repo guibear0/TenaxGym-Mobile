@@ -44,12 +44,13 @@ const EJERCICIOS_MOVILIDAD = {
   Tobillos: ["Flexión Izquierda", "Flexión Derecha"],
 };
 
-// Lista plana para el selector
+// Lista plana para picker
 const ALL_EJERCICIOS = Object.entries(EJERCICIOS_MOVILIDAD).flatMap(
   ([grupo, ejercicios]) =>
     ejercicios.map((ej) => ({
       grupo,
       ejercicio: ej,
+      uniqueKey: `${grupo}::${ej}`,
       label: `${grupo} - ${ej}`,
     }))
 );
@@ -61,7 +62,7 @@ export default function MobilityTestsScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedView, setSelectedView] = useState("list");
   const [formValues, setFormValues] = useState({
-    ejercicio: ALL_EJERCICIOS[0].ejercicio,
+    ejercicio: ALL_EJERCICIOS[0].uniqueKey,
     marca: "",
   });
 
@@ -113,11 +114,14 @@ export default function MobilityTestsScreen({ navigation }) {
       return;
     }
 
+    const [categoria, nombreEjercicio] = formValues.ejercicio.split("::");
+
     try {
       const record = {
         user_id: userId,
         tipo: "movilidad",
-        ejercicio: formValues.ejercicio,
+        categoria, // ✅ ahora guardamos categoría
+        ejercicio: nombreEjercicio, // ✅ solo nombre
         marca: parseFloat(formValues.marca),
         fecha: new Date().toISOString().split("T")[0],
       };
@@ -127,7 +131,7 @@ export default function MobilityTestsScreen({ navigation }) {
       if (error) throw error;
 
       Alert.alert("Éxito", "Test guardado");
-      setFormValues({ ejercicio: ALL_EJERCICIOS[0].ejercicio, marca: "" });
+      setFormValues({ ejercicio: ALL_EJERCICIOS[0].uniqueKey, marca: "" });
       fetchData();
       setModalVisible(false);
     } catch (err) {
@@ -169,86 +173,69 @@ export default function MobilityTestsScreen({ navigation }) {
     });
   };
 
-  // Determinar el grupo de un ejercicio
-  const getGrupo = (ejercicio) => {
-    for (const [grupo, ejercicios] of Object.entries(EJERCICIOS_MOVILIDAD)) {
-      if (ejercicios.includes(ejercicio)) {
-        return grupo;
-      }
-    }
-    return "Otros";
-  };
-
-  // Agrupar datos por grupo de movilidad
+  // Agrupar por categoría
   const groupedData = {};
   data.forEach((record) => {
-    const grupo = getGrupo(record.ejercicio);
-    if (!groupedData[grupo]) {
-      groupedData[grupo] = {};
-    }
-    if (!groupedData[grupo][record.ejercicio]) {
+    const grupo = record.categoria || "Otros";
+    if (!groupedData[grupo]) groupedData[grupo] = {};
+    if (!groupedData[grupo][record.ejercicio])
       groupedData[grupo][record.ejercicio] = [];
-    }
     groupedData[grupo][record.ejercicio].push(record);
   });
 
-  const renderTestItem = (record, onDelete) => {
-    return (
+  const renderTestItem = (record, onDelete) => (
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: "#60a5fa", fontSize: 12, marginBottom: 4 }}>
+          {formatDate(record.fecha)}
+        </Text>
+        <Text style={{ color: "#22c55e", fontSize: 20, fontWeight: "bold" }}>
+          {record.marca} cm
+        </Text>
+      </View>
+      <TouchableOpacity onPress={onDelete}>
+        <Trash2 size={20} color="#ef4444" />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderSubGroup = (ejercicio, tests) => (
+    <View key={ejercicio} style={{ marginBottom: 12 }}>
       <View
         style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
+          backgroundColor: "rgba(55, 65, 81, 0.4)",
+          padding: 10,
+          borderRadius: 8,
+          marginBottom: 8,
         }}
       >
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: "#60a5fa", fontSize: 12, marginBottom: 4 }}>
-            {formatDate(record.fecha)}
-          </Text>
-          <Text style={{ color: "#22c55e", fontSize: 20, fontWeight: "bold" }}>
-            {record.marca} cm
-          </Text>
-        </View>
-        <TouchableOpacity onPress={onDelete}>
-          <Trash2 size={20} color="#ef4444" />
-        </TouchableOpacity>
+        <Text style={{ color: "#e5e7eb", fontWeight: "600", fontSize: 14 }}>
+          {ejercicio}
+        </Text>
       </View>
-    );
-  };
-
-  const renderSubGroup = (ejercicio, tests) => {
-    return (
-      <View style={{ marginBottom: 12 }}>
+      {tests.map((test) => (
         <View
+          key={`${test.id}-${test.ejercicio}`}
           style={{
-            backgroundColor: "rgba(55, 65, 81, 0.4)",
-            padding: 10,
-            borderRadius: 8,
+            backgroundColor: "rgba(31, 41, 55, 0.6)",
+            padding: 12,
+            borderRadius: 12,
             marginBottom: 8,
+            borderWidth: 1,
+            borderColor: "rgba(107, 114, 128, 0.3)",
           }}
         >
-          <Text style={{ color: "#e5e7eb", fontWeight: "600", fontSize: 14 }}>
-            {ejercicio}
-          </Text>
+          {renderTestItem(test, () => handleDelete(test.id))}
         </View>
-        {tests.map((test) => (
-          <View
-            key={test.id}
-            style={{
-              backgroundColor: "rgba(31, 41, 55, 0.6)",
-              padding: 12,
-              borderRadius: 12,
-              marginBottom: 8,
-              borderWidth: 1,
-              borderColor: "rgba(107, 114, 128, 0.3)",
-            }}
-          >
-            {renderTestItem(test, () => handleDelete(test.id))}
-          </View>
-        ))}
-      </View>
-    );
-  };
+      ))}
+    </View>
+  );
 
   if (loading) {
     return (
@@ -363,24 +350,21 @@ export default function MobilityTestsScreen({ navigation }) {
                 </Text>
               </View>
             ) : (
-              Object.entries(groupedData).map(([grupo, ejercicios]) => {
-                const allTests = Object.values(ejercicios).flat();
-                return (
-                  <CollapsibleGroup
-                    key={grupo}
-                    title={grupo}
-                    items={allTests}
-                    renderItem={() => (
-                      <View>
-                        {Object.entries(ejercicios).map(([ejercicio, tests]) =>
-                          renderSubGroup(ejercicio, tests)
-                        )}
-                      </View>
-                    )}
-                    defaultOpen={false}
-                  />
-                );
-              })
+              Object.entries(groupedData).map(([grupo, ejercicios]) => (
+                <CollapsibleGroup
+                  key={grupo}
+                  title={grupo}
+                  items={[{ id: grupo }]}
+                  renderItem={() => (
+                    <View>
+                      {Object.entries(ejercicios).map(([ejercicio, tests]) =>
+                        renderSubGroup(ejercicio, tests)
+                      )}
+                    </View>
+                  )}
+                  defaultOpen={false}
+                />
+              ))
             )}
           </ScrollView>
         ) : (
@@ -461,9 +445,9 @@ export default function MobilityTestsScreen({ navigation }) {
                       >
                         {ALL_EJERCICIOS.map((item) => (
                           <Picker.Item
-                            key={item.ejercicio}
+                            key={item.uniqueKey}
                             label={item.label}
-                            value={item.ejercicio}
+                            value={item.uniqueKey}
                           />
                         ))}
                       </Picker>
