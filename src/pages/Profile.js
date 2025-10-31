@@ -103,7 +103,6 @@ export default function Profile({ navigation }) {
       setUserProfile(updatedProfile);
       setAltura(newAltura);
       setEditingField(null);
-      Alert.alert("Éxito", "Altura actualizada");
     } catch (err) {
       Alert.alert("Error", err.message || "No se pudo actualizar la altura");
     }
@@ -123,7 +122,6 @@ export default function Profile({ navigation }) {
       setUserProfile(updatedProfile);
       setPeso(newPeso);
       setEditingField(null);
-      Alert.alert("Éxito", "Peso actualizado");
     } catch (err) {
       Alert.alert("Error", err.message || "No se pudo actualizar el peso");
     }
@@ -143,7 +141,6 @@ export default function Profile({ navigation }) {
       setUserProfile(updatedProfile);
       setEmail(newEmail);
       setEditingField(null);
-      Alert.alert("Éxito", "Correo actualizado");
     } catch (err) {
       Alert.alert("Error", err.message || "No se pudo actualizar el correo");
     }
@@ -169,7 +166,6 @@ export default function Profile({ navigation }) {
       setNewPassword("");
       setConfirmPassword("");
       setEditingField(null);
-      Alert.alert("Éxito", "Contraseña actualizada");
     } catch (err) {
       Alert.alert(
         "Error",

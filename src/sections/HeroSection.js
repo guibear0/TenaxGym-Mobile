@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
 import { HeartHandshake } from "lucide-react-native";
 import Button from "../components/ui/Button";
 import { useNavigation } from "@react-navigation/native";
@@ -10,10 +9,7 @@ export default function HeroSection() {
 
   return (
     <View className="flex-1 justify-center items-center px-6">
-      <Animated.View
-        entering={FadeInDown.duration(800)}
-        className="items-center"
-      >
+      <View className="items-center">
         <View className="flex-row items-center justify-center mb-4">
           <HeartHandshake color="#60A5FA" size={28} />
           <Text className="text-2xl font-bold text-gray-100 ml-2">
@@ -51,7 +47,7 @@ export default function HeroSection() {
             </Text>
           </Button>
         </View>
-      </Animated.View>
+      </View>
     </View>
   );
 }

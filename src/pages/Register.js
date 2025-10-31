@@ -39,7 +39,25 @@ export default function Register({ navigation }) {
     setLoading(true);
 
     try {
-      // Generar salt y hashear
+      // Verificar si el correo ya existe
+      const { data: existingUser, error: fetchError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", trimmedEmail)
+        .single();
+
+      if (existingUser) {
+        setErrorMsg("Esta cuenta ya está en uso. Inicia sesión.");
+        setLoading(false);
+        return;
+      }
+
+      if (fetchError && fetchError.code !== "PGRST116") {
+        // Si el error no es "no rows found"
+        throw fetchError;
+      }
+
+      // Generar salt y hashear contraseña
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(trimmedPassword, salt);
 
@@ -70,19 +88,19 @@ export default function Register({ navigation }) {
         .single();
 
       // Solo insertar si no existe
-      let clientError = null;
       if (!existingClient) {
-        const result = await supabase.from("clientes").insert({
+        const { error: clientError } = await supabase.from("clientes").insert({
           id_cliente: userId,
           trainer_id: null,
         });
-        clientError = result.error;
-      }
 
-      if (clientError) {
-        setErrorMsg(clientError.message || "Error al crear perfil de cliente");
-        setLoading(false);
-        return;
+        if (clientError) {
+          setErrorMsg(
+            clientError.message || "Error al crear perfil de cliente"
+          );
+          setLoading(false);
+          return;
+        }
       }
 
       await AsyncStorage.setItem(
@@ -100,6 +118,7 @@ export default function Register({ navigation }) {
     } catch (err) {
       console.error("Error en registro:", err);
       setErrorMsg(err.message || "Error al registrar");
+    } finally {
       setLoading(false);
     }
   };
@@ -226,13 +245,13 @@ export default function Register({ navigation }) {
                 </TouchableOpacity>
 
                 <View className="flex-row justify-center mt-4">
-                  <Text className="text-sm text-gray-100">
+                  <Text className="text-lg  text-gray-100">
                     ¿Ya tienes cuenta?{" "}
                   </Text>
                   <TouchableOpacity
                     onPress={() => navigation.navigate("Login")}
                   >
-                    <Text className="text-sm font-medium text-blue-400">
+                    <Text className="text-lg font-medium text-blue-400">
                       Inicia sesión
                     </Text>
                   </TouchableOpacity>

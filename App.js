@@ -17,7 +17,8 @@ import Measures from "./src/pages/MeasuresScreen";
 import Tests from "./src/pages/TestsScreen";
 import StrengthTests from "./src/pages/StrengthTestsScreen";
 import MobilityTests from "./src/pages/MobilityTestsScreen";
-
+import ForgotPassword from "./src/pages/ForgotPassword";
+import ResetPassword from "./src/pages/ResetPassword";
 import "./global.css";
 
 const Stack = createStackNavigator();
@@ -82,6 +83,8 @@ export default function App() {
         <Stack.Screen name="Tests" component={Tests} />
         <Stack.Screen name="StrengthTests" component={StrengthTests} />
         <Stack.Screen name="MobilityTests" component={MobilityTests} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+        <Stack.Screen name="ResetPassword" component={ResetPassword} />
       </Stack.Navigator>
     </NavigationContainer>
   );

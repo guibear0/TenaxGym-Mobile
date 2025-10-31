@@ -151,6 +151,16 @@ export default function Login({ navigation }) {
               </View>
             </View>
 
+            <View className="flex-row justify-end mb-4">
+              <TouchableOpacity
+                onPress={() => navigation.navigate("ForgotPassword")}
+              >
+                <Text className="text-blue-400 text-sm font-medium">
+                  ¿No recuerdas la contraseña?
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity
               onPress={handleLogin}
               disabled={loading}
@@ -162,9 +172,11 @@ export default function Login({ navigation }) {
             </TouchableOpacity>
 
             <View className="flex-row justify-center mt-4">
-              <Text className="text-sm text-gray-100">¿No tienes cuenta? </Text>
+              <Text className="text-lg  text-gray-100">
+                ¿No tienes cuenta?{" "}
+              </Text>
               <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-                <Text className="text-sm font-medium text-blue-400">
+                <Text className="text-lg  font-medium text-blue-400">
                   Regístrate
                 </Text>
               </TouchableOpacity>
