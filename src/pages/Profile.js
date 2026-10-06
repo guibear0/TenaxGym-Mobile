@@ -203,7 +203,7 @@ export default function Profile({ navigation }) {
           <Text className="text-white">{value || "No especificado"}</Text>
         </View>
       ) : (
-        <View>
+        <View className="bg-blue-900/30 border-2 border-blue-500 rounded-lg p-3">
           <TextInput
             value={
               field === "nombre"
@@ -233,7 +233,7 @@ export default function Profile({ navigation }) {
                   : "default"
             }
             autoCapitalize={field === "nombre" ? "words" : "none"}
-            className="bg-gray-900 border border-gray-600 text-white rounded-lg p-3 mb-3"
+            className="bg-gray-800 border border-blue-400 text-white rounded-lg p-3 mb-3"
           />
 
           <View className="flex-row gap-2">
@@ -339,10 +339,10 @@ export default function Profile({ navigation }) {
                     <Text className="text-white">••••••••</Text>
                   </View>
                 ) : (
-                  <View>
+                  <View className="bg-blue-900/30 border-2 border-blue-500 rounded-lg p-3">
                     {/* Nueva contraseña */}
                     <View className="mb-3">
-                      <Text className="text-gray-400 text-xs mb-1">
+                      <Text className="text-gray-300 text-xs mb-1">
                         Nueva contraseña
                       </Text>
                       <View className="relative">
@@ -352,7 +352,7 @@ export default function Profile({ navigation }) {
                           placeholder="Ingresa nueva contraseña"
                           placeholderTextColor="#6b7280"
                           secureTextEntry={!showNewPassword}
-                          className="bg-gray-900 border border-gray-600 text-white rounded-lg p-3 pr-12"
+                          className="bg-gray-800 border border-blue-400 text-white rounded-lg p-3 pr-12"
                         />
                         <TouchableOpacity
                           onPress={() => setShowNewPassword(!showNewPassword)}
@@ -369,7 +369,7 @@ export default function Profile({ navigation }) {
 
                     {/* Confirmar contraseña */}
                     <View className="mb-3">
-                      <Text className="text-gray-400 text-xs mb-1">
+                      <Text className="text-gray-300 text-xs mb-1">
                         Confirmar contraseña
                       </Text>
                       <View className="relative">
@@ -379,7 +379,7 @@ export default function Profile({ navigation }) {
                           placeholder="Confirma tu contraseña"
                           placeholderTextColor="#6b7280"
                           secureTextEntry={!showConfirmPassword}
-                          className="bg-gray-900 border border-gray-600 text-white rounded-lg p-3 pr-12"
+                          className="bg-gray-800 border border-blue-400 text-white rounded-lg p-3 pr-12"
                         />
                         <TouchableOpacity
                           onPress={() =>

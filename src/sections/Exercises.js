@@ -58,7 +58,7 @@ export default function Exercises({ day }) {
           .select("*, catalogo_ejercicios(nombre, tipo, imagen)")
           .eq("client_id", userId)
           .eq("numero_dia", day)
-          .order("catalogo_id", { ascending: true });
+          .order("orden", { ascending: true });
 
         const { data: comments } = await supabase
           .from("comentarios_bloque")
@@ -194,24 +194,29 @@ export default function Exercises({ day }) {
         flex: 1,
         alignItems: "center",
         justifyContent: "flex-start",
-        paddingTop: 40,
+        paddingBottom: 40,
       }}
     >
-      <Text style={{ fontSize: 28, fontWeight: "bold", color: "#fff" }}>
-        {currentBlock}
-      </Text>
-      <Text
-        style={{
-          fontSize: 16,
-          color: "#ccc",
-          marginVertical: 12,
-          textAlign: "center",
-          paddingHorizontal: 20,
-        }}
-      >
-        {comment}
-      </Text>
+      {/* Header Block */}
+      <View style={{ alignItems: "center", marginBottom: 16 }}>
+        <Text style={{ fontSize: 28, fontWeight: "bold", color: "#fff" }}>
+          {currentBlock}
+        </Text>
+        <Text
+          style={{
+            fontSize: 14,
+            color: "#9ca3af",
+            marginTop: 8,
+            textAlign: "center",
+            paddingHorizontal: 24,
+            lineHeight: 20,
+          }}
+        >
+          {comment}
+        </Text>
+      </View>
 
+      {/* Image */}
       {exercise.catalogo_ejercicios?.imagen ? (
         <Image
           source={{ uri: exercise.catalogo_ejercicios.imagen }}
@@ -219,7 +224,7 @@ export default function Exercises({ day }) {
             width: imageWidth,
             height: imageHeight,
             borderRadius: 16,
-            marginVertical: 10,
+            marginBottom: 16,
           }}
           resizeMode="cover"
         />
@@ -234,39 +239,111 @@ export default function Exercises({ day }) {
             backgroundColor: "#1f2937",
             justifyContent: "center",
             alignItems: "center",
-            marginVertical: 10,
+            marginBottom: 16,
           }}
         >
           <ImageOff size={64} color="#9CA3AF" />
         </Animated.View>
       )}
 
-      <Text
+      {/* Exercise Info Card */}
+      <View
         style={{
-          fontSize: 22,
-          fontWeight: "600",
-          color: "#fff",
-          marginTop: -3,
-          textAlign: "center",
-          paddingHorizontal: 20,
+          backgroundColor: "rgba(31, 41, 55, 0.8)",
+          borderRadius: 16,
+          padding: 20,
+          width: imageWidth,
+          marginBottom: 20,
+          borderWidth: 1,
+          borderColor: "rgba(107, 114, 128, 0.3)",
         }}
       >
-        {exercise.catalogo_ejercicios?.nombre}
-      </Text>
-      <Text style={{ marginTop: 8, color: "#aaa" }}>
-        Ejercicio {currentExerciseIndex + 1} de {exercises.length}
-      </Text>
+        <Text
+          style={{
+            fontSize: 22,
+            fontWeight: "700",
+            color: "#fff",
+            textAlign: "center",
+            marginBottom: 16,
+          }}
+        >
+          {exercise.catalogo_ejercicios?.nombre}
+        </Text>
 
+        {/* Details Grid */}
+        <View style={{ gap: 12 }}>
+          {exercise.repeticiones && (
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                paddingVertical: 8,
+                borderBottomWidth: 1,
+                borderBottomColor: "rgba(107, 114, 128, 0.2)",
+              }}
+            >
+              <Text style={{ color: "#9ca3af", fontSize: 14 }}>
+                Repeticiones
+              </Text>
+              <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>
+                {exercise.repeticiones}
+              </Text>
+            </View>
+          )}
+
+          {exercise.descanso && (
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                paddingVertical: 8,
+                borderBottomWidth: 1,
+                borderBottomColor: "rgba(107, 114, 128, 0.2)",
+              }}
+            >
+              <Text style={{ color: "#9ca3af", fontSize: 14 }}>Descanso</Text>
+              <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>
+                {exercise.descanso}
+              </Text>
+            </View>
+          )}
+
+          {exercise.duracion && (
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                paddingVertical: 8,
+              }}
+            >
+              <Text style={{ color: "#9ca3af", fontSize: 14 }}>Duración</Text>
+              <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>
+                {exercise.duracion}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <Text
+          style={{
+            marginTop: 16,
+            color: "#60a5fa",
+            textAlign: "center",
+            fontSize: 13,
+          }}
+        >
+          Ejercicio {currentExerciseIndex + 1} de {exercises.length}
+        </Text>
+      </View>
+
+      {/* Navigation */}
       <PaginationDots
         currentIndex={currentExerciseIndex}
         totalDots={exercises.length}
-        containerStyle={{ marginTop: 20 }}
+        containerStyle={{ marginBottom: 12 }}
       />
 
-      <SwipeHint
-        dependencies={[currentExerciseIndex, selectedBlockIndex]}
-        containerStyle={{ marginTop: 15 }}
-      />
+      <SwipeHint dependencies={[currentExerciseIndex, selectedBlockIndex]} />
     </View>
   );
 }
